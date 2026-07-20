@@ -401,7 +401,7 @@ function StaffFormModal({
         const res = await fetch(`/api/users/${person.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, role, departmentId, designation }),
+          body: JSON.stringify({ name, email, role, departmentId, designation }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to update staff");
@@ -430,7 +430,12 @@ function StaffFormModal({
               <input className="input" type="password" placeholder="Temporary Password (min 6 chars)" value={password} onChange={(e) => setPassword(e.target.value)} />
             </>
           ) : (
-            <p className="text-xs text-gray-400 -mt-1">{email} (email cannot be changed here)</p>
+            <div>
+              <input className="input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <p className="text-xs text-amber-600 mt-1">
+                ⚠️ Changing this changes their login email. They must use the new address next time they log in.
+              </p>
+            </div>
           )}
           <input className="input" placeholder="Designation (e.g. Tahsildar)" value={designation} onChange={(e) => setDesignation(e.target.value)} />
 

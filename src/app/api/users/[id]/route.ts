@@ -21,6 +21,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     data.departmentId = null;
   }
 
+  if (typeof body.email === "string" && body.email.trim()) {
+    const newEmail = body.email.trim().toLowerCase();
+    const existing = await prisma.user.findUnique({ where: { email: newEmail } });
+    if (existing && existing.id !== id) {
+      return NextResponse.json({ error: "Another account already uses this email address" }, { status: 409 });
+    }
+    data.email = newEmail;
+  }
+
   try {
     const updated = await prisma.user.update({
       where: { id },
