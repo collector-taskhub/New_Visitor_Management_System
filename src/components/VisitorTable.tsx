@@ -111,10 +111,12 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
               <FileDown size={14} /> Excel
             </a>
             <a
-              href={`/api/reports/daily?type=pdf&date=${filters.date || format(new Date(), "yyyy-MM-dd")}`}
+              href={`/reports/print?date=${filters.date || format(new Date(), "yyyy-MM-dd")}`}
+              target="_blank"
+              rel="noreferrer"
               className="flex items-center gap-1 text-sm px-3 py-2 rounded-lg bg-navy text-white hover:opacity-90"
             >
-              <FileDown size={14} /> PDF
+              <FileDown size={14} /> Print / PDF
             </a>
           </div>
         )}
