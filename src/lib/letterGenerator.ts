@@ -1,3 +1,4 @@
+import "regenerator-runtime/runtime";
 import { PDFDocument, rgb, PageSizes } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import fs from "fs";
