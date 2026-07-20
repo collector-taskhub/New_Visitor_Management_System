@@ -99,7 +99,7 @@ export default function TrackPage() {
                   rel="noreferrer"
                   className="mt-5 inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg border border-green text-green font-medium hover:bg-green hover:text-white transition"
                 >
-                  <FileDown size={16} /> Download Forwarding Letter (PDF)
+                  <FileDown size={16} /> Download Forwarding Letter (WORD)
                 </a>
               )}
 

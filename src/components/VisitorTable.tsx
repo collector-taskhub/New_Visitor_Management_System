@@ -104,13 +104,13 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
 
         {canExport && (
           <div className="flex gap-2 ml-auto">
-            <a
+            
               href={`/api/reports/daily?type=excel&date=${filters.date || format(new Date(), "yyyy-MM-dd")}`}
               className="flex items-center gap-1 text-sm px-3 py-2 rounded-lg bg-green text-white hover:opacity-90"
             >
               <FileDown size={14} /> Excel
             </a>
-            <a
+            
               href={`/api/reports/daily?type=pdf&date=${filters.date || format(new Date(), "yyyy-MM-dd")}`}
               className="flex items-center gap-1 text-sm px-3 py-2 rounded-lg bg-navy text-white hover:opacity-90"
             >
@@ -138,7 +138,7 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
               <tr key={v.id} className="border-b last:border-0 align-top hover:bg-gray-50/60">
                 <td className="py-3 pr-3 font-medium text-navy whitespace-nowrap">
                   {v.tokenNo}
-		   {v.attachmentUrl && (
+                  {v.attachmentUrl && (
                     <a href={v.attachmentUrl} target="_blank" rel="noreferrer" className="ml-1 text-gray-400 hover:text-navy inline-block align-middle" title="View Uploaded Application">
                       <Paperclip size={13} />
                     </a>
@@ -177,33 +177,36 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
                 <td className="py-3 pr-3"><StatusBadge status={v.status} /></td>
                 <td className="py-3 pr-3 text-center">{v.visitCount}</td>
                 <td className="py-3 pr-3">
-                  <div className="relative inline-block">
-                    <button
-                      onClick={() => setOpenRow(openRow === v.id ? null : v.id)}
-                      className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50"
-                    >
-                      Update <ChevronDown size={12} />
-                    </button>
-                    {openRow === v.id && (
-                      <div className="absolute right-0 z-10 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg w-44 py-1">
-                        {STATUS_OPTIONS.map((s) => (
-                          <button
-                            key={s}
-                            onClick={() => { updateStatus(v.id, s); setOpenRow(null); }}
-                            className="block w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50"
-                          >
-                            {s.replace(/_/g, " ")}
-                          </button>
-                        ))}
-                        {canAssign && (
-                          <button
-                            onClick={() => { generateLetter(v.id); setOpenRow(null); }}
-                            className="flex items-center gap-1 w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 border-t text-navy font-medium"
-                          >
-                            <FileText size={12} /> Generate Letter
-                          </button>
-                        )}
-                      </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative inline-block">
+                      <button
+                        onClick={() => setOpenRow(openRow === v.id ? null : v.id)}
+                        className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50"
+                      >
+                        Update <ChevronDown size={12} />
+                      </button>
+                      {openRow === v.id && (
+                        <div className="absolute right-0 z-10 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg w-44 py-1">
+                          {STATUS_OPTIONS.map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => { updateStatus(v.id, s); setOpenRow(null); }}
+                              className="block w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50"
+                            >
+                              {s.replace(/_/g, " ")}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {canAssign && (
+                      <button
+                        onClick={() => generateLetter(v.id)}
+                        className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-navy text-white hover:bg-navy-light transition"
+                        title="Generate Marathi Forwarding Letter (Word)"
+                      >
+                        <FileText size={12} /> Letter
+                      </button>
                     )}
                   </div>
                 </td>

@@ -39,10 +39,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       jaKr,
     });
 
-    const saved = await saveFile(
-      `letters/${visitor.tokenNo.replace(/\//g, "-")}.pdf`,
-      Buffer.from(pdfBytes),
-      "application/pdf"
+     const saved = await saveFile(
+      `letters/${visitor.tokenNo.replace(/\//g, "-")}.docx`,
+      pdfBytes,
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
 
     await prisma.visitor.update({
