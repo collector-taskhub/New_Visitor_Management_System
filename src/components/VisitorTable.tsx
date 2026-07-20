@@ -156,7 +156,22 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
                 </td>
                 <td className="py-3 pr-3 max-w-[220px]">
                   <div className="line-clamp-2">{v.subject}</div>
-                  {v.aiSummary && <div className="text-[11px] text-gray-400 italic mt-1">AI: {v.aiSummary}</div>}
+                  {v.aiSummary && (
+                    <div className="text-[11px] text-gray-400 italic mt-1">
+                      AI: {v.aiSummary}
+                      {typeof v.aiConfidence === "number" && (
+                        v.aiConfidence > 0 ? (
+                          <span className="ml-1 not-italic font-semibold text-green-600">
+                            ({Math.round(v.aiConfidence * 100)}% confidence)
+                          </span>
+                        ) : (
+                          <span className="ml-1 not-italic font-semibold text-red-500">
+                            (AI not active - check GEMINI_API_KEY)
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td className="py-3 pr-3">
                   {canAssign ? (

@@ -53,6 +53,12 @@ export default function Header() {
               >
                 Dashboard
               </Link>
+              <Link
+                href="/profile"
+                className="hidden sm:inline text-navy font-medium hover:text-saffron"
+              >
+                My Profile
+              </Link>
               <div className="hidden md:flex flex-col items-end text-xs text-gray-500 leading-tight">
                 <span className="font-semibold text-navy">{user.name}</span>
                 <span>{user.role?.replace("_", " ")}</span>
