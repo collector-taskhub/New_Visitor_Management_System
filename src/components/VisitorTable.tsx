@@ -104,13 +104,13 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
 
         {canExport && (
           <div className="flex gap-2 ml-auto">
-            
+            <a
               href={`/api/reports/daily?type=excel&date=${filters.date || format(new Date(), "yyyy-MM-dd")}`}
               className="flex items-center gap-1 text-sm px-3 py-2 rounded-lg bg-green text-white hover:opacity-90"
             >
               <FileDown size={14} /> Excel
             </a>
-            
+            <a
               href={`/api/reports/daily?type=pdf&date=${filters.date || format(new Date(), "yyyy-MM-dd")}`}
               className="flex items-center gap-1 text-sm px-3 py-2 rounded-lg bg-navy text-white hover:opacity-90"
             >
