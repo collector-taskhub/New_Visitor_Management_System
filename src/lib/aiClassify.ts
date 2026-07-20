@@ -7,10 +7,11 @@ export interface ClassificationResult {
   raw: string;
 }
 
-// Free-tier Gemini model. "gemini-2.0-flash" is fast and free for typical
-// office volumes under Google AI Studio's free quota. If you hit rate limits,
-// swap to "gemini-1.5-flash" (also free tier) - just change the constant below.
-const GEMINI_MODEL = "gemini-2.0-flash";
+// Free-tier Gemini model. NOTE: gemini-2.0-flash was retired by Google on
+// June 1, 2026 - if classification silently stops working again in future,
+// check https://ai.google.dev/gemini-api/docs/changelog for the current
+// recommended free-tier model name and update this constant.
+const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 /**
@@ -76,7 +77,7 @@ Respond with the department name, a confidence score, and a short Marathi summar
         departmentName: "General Administration / Collector Office",
         confidence: 0,
         summary: subject,
-        raw: `Gemini API error ${res.status}`,
+        raw: `Gemini API error ${res.status}: ${errText.slice(0, 300)}`,
       };
     }
 
@@ -98,13 +99,13 @@ Respond with the department name, a confidence score, and a short Marathi summar
       summary: parsed.summaryMarathi || subject,
       raw,
     };
-  } catch (err) {
+  } catch (err: any) {
     console.error("Gemini classification failed", err);
     return {
       departmentName: "General Administration / Collector Office",
       confidence: 0,
       summary: subject,
-      raw: "Gemini request failed",
+      raw: `Gemini request failed: ${err?.message || String(err)}`,
     };
   }
 }

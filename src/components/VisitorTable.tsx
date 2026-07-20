@@ -165,8 +165,11 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
                             ({Math.round(v.aiConfidence * 100)}% confidence)
                           </span>
                         ) : (
-                          <span className="ml-1 not-italic font-semibold text-red-500">
-                            (AI not active - check GEMINI_API_KEY)
+                          <span
+                            className="ml-1 not-italic font-semibold text-red-500 cursor-help"
+                            title={v.aiRawResponse || "Unknown error"}
+                          >
+                            (AI failed - hover for reason)
                           </span>
                         )
                       )}
