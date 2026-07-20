@@ -62,10 +62,15 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
   }
 
   async function generateLetter(id: string) {
-    const res = await fetch(`/api/visitors/${id}/letter`, { method: "POST" });
-    const data = await res.json();
-    if (data.letterUrl) window.open(data.letterUrl, "_blank");
-    load();
+    try {
+      const res = await fetch(`/api/visitors/${id}/letter`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Letter generation failed");
+      await load();
+      alert("पत्र तयार झाले! टोकन क्रमांकाशेजारी 📄 चिन्हावर क्लिक करून पहा.\nLetter generated! Click the 📄 icon next to the token number to view it.");
+    } catch (err: any) {
+      alert(`Letter generation failed: ${err.message}`);
+    }
   }
 
   return (
@@ -133,9 +138,14 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
               <tr key={v.id} className="border-b last:border-0 align-top hover:bg-gray-50/60">
                 <td className="py-3 pr-3 font-medium text-navy whitespace-nowrap">
                   {v.tokenNo}
-                  {v.attachmentUrl && (
-                    <a href={v.attachmentUrl} target="_blank" rel="noreferrer" className="ml-1 text-gray-400 hover:text-navy inline-block align-middle">
+		   {v.attachmentUrl && (
+                    <a href={v.attachmentUrl} target="_blank" rel="noreferrer" className="ml-1 text-gray-400 hover:text-navy inline-block align-middle" title="View Uploaded Application">
                       <Paperclip size={13} />
+                    </a>
+                  )}
+                  {v.letterUrl && (
+                    <a href={v.letterUrl} target="_blank" rel="noreferrer" className="ml-1 text-green-600 hover:text-green-800 inline-block align-middle" title="View Generated Letter">
+                      <FileText size={13} />
                     </a>
                   )}
                   <div className="text-[11px] text-gray-400 font-normal">{format(new Date(v.createdAt), "dd MMM, hh:mm a")}</div>
