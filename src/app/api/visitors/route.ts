@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { generateTokenNo } from "@/lib/tokenGenerator";
 import { classifyVisitorApplication } from "@/lib/aiClassify";
+import { fetchAttachmentBase64 } from "@/lib/fetchAttachment";
 import { requireRole } from "@/lib/apiAuth";
 
 const registerSchema = z.object({
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
     // background work is unreliable here - awaiting it guarantees it actually runs.
     // Typically adds well under 2 seconds with Gemini's flash model.
     try {
-      await classifyAndAssign(visitor.id, data.subject);
+      await classifyAndAssign(visitor.id, data.subject, data.attachmentUrl, data.attachmentType);
     } catch (e) {
       console.error("AI classification failed for", visitor.id, e);
     }
@@ -64,8 +65,21 @@ export async function POST(req: Request) {
   }
 }
 
-async function classifyAndAssign(visitorId: string, subject: string) {
-  const result = await classifyVisitorApplication(subject);
+async function classifyAndAssign(
+  visitorId: string,
+  subject: string,
+  attachmentUrl?: string,
+  attachmentType?: string
+) {
+  let attachment = null;
+  if (attachmentUrl && attachmentType) {
+    const base64 = await fetchAttachmentBase64(attachmentUrl);
+    if (base64) {
+      attachment = { base64, mimeType: attachmentType };
+    }
+  }
+
+  const result = await classifyVisitorApplication(subject, attachment);
 
   const dept = await prisma.department.findFirst({ where: { name: result.departmentName } });
 

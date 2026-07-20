@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { saveFile } from "@/lib/storage";
 
 const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"];
-const MAX_SIZE = 8 * 1024 * 1024;
+const MAX_SIZE = 8 * 1024 * 1024; // 8 MB
 
 export async function POST(req: Request) {
   try {
@@ -22,7 +22,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       url: saved.url,
-      type: file.type === "application/pdf" ? "pdf" : "image",
+      type: file.type, // exact MIME type (e.g. "application/pdf", "image/jpeg") - used both for
+      // display and, in the AI classifier, as the mime_type Gemini needs to read the file directly
     });
   } catch (err: any) {
     console.error("Upload failed:", err);

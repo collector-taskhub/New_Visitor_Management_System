@@ -7,6 +7,11 @@ export interface ClassificationResult {
   raw: string;
 }
 
+export interface AttachmentInput {
+  base64: string;
+  mimeType: string; // e.g. "application/pdf", "image/jpeg"
+}
+
 // Free-tier Gemini model. NOTE: gemini-2.0-flash was retired by Google on
 // June 1, 2026 - if classification silently stops working again in future,
 // check https://ai.google.dev/gemini-api/docs/changelog for the current
@@ -15,18 +20,20 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 /**
- * Sends the visitor's subject (+ optional OCR'd application text) to Gemini
- * and asks it to pick the single most relevant government department.
- * Get a free API key at https://aistudio.google.com/apikey
+ * Sends the visitor's typed subject AND (when available) their uploaded
+ * application file directly to Gemini as multimodal input - Gemini reads the
+ * PDF/image itself (including handwritten Marathi or English text) rather than
+ * needing separate OCR/text-extraction. Works whether or not an attachment
+ * exists: with one, both the subject and the file inform the decision; without
+ * one, classification runs on the typed subject alone as before.
  */
 export async function classifyVisitorApplication(
   subject: string,
-  extraContext?: string
+  attachment?: AttachmentInput | null
 ): Promise<ClassificationResult> {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    // No key configured - system still works, just requires manual assignment.
     return {
       departmentName: "General Administration / Collector Office",
       confidence: 0,
@@ -38,23 +45,29 @@ export async function classifyVisitorApplication(
   const departmentList = DEFAULT_DEPARTMENTS.map((d) => `- ${d.name} (${d.nameMarathi})`).join("\n");
 
   const prompt = `You are an assistant to the District Collector office of Jalna, Maharashtra, India.
-A visitor has registered to meet the Collector. Based on their stated subject/grievance,
+A visitor has registered to meet the Collector. Based on their stated subject/grievance
+${attachment ? "AND the attached application file (read its full contents - it may be typed or handwritten, in Marathi or English, and may contain more detail than the typed subject alone)" : ""},
 decide which ONE government department should handle it.
 
 Available departments (pick the exact "name" value, do not invent new ones):
 ${departmentList}
 
-Visitor's subject: """${subject}"""
-${extraContext ? `Additional application text (OCR/extracted): """${extraContext}"""` : ""}
+Visitor's typed subject: """${subject}"""
+${attachment ? "\nThe visitor's uploaded application is attached below - read it carefully and factor it into your decision and summary." : ""}
 
-Respond with the department name, a confidence score, and a short Marathi summary.`;
+Respond with the department name, a confidence score, and a short Marathi summary that reflects everything you read (subject${attachment ? " and the attached application" : ""}).`;
+
+  const parts: any[] = [{ text: prompt }];
+  if (attachment) {
+    parts.push({ inline_data: { mime_type: attachment.mimeType, data: attachment.base64 } });
+  }
 
   try {
     const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts }],
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
