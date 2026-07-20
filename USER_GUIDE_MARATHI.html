@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<title>वापर मार्गदर्शक — भेट व्यवस्थापन प्रणाली, जालना</title>
+<style>
+  body { font-family: 'Noto Sans Devanagari', 'Nirmala UI', Arial, sans-serif; margin:0; background:#f5f7fb; color:#10182b; line-height:1.7; }
+  .tricolor { height:6px; background: linear-gradient(90deg,#f4941e 0%,#f4941e 33%,#fff 33%,#fff 66%,#128a3e 66%,#128a3e 100%); }
+  header { background: linear-gradient(135deg,#14245c,#1e3a8a); color:#fff; padding:30px 20px; text-align:center; }
+  header h1 { margin:0 0 6px; font-size:26px; }
+  header p { margin:0; opacity:.85; font-size:14px; }
+  main { max-width:850px; margin:0 auto; padding:24px 20px 60px; }
+  section { background:#fff; border-radius:16px; padding:24px 28px; margin-bottom:22px; box-shadow:0 4px 20px rgba(20,36,92,.08); }
+  h2 { color:#14245c; border-left:5px solid #f4941e; padding-left:12px; font-size:20px; }
+  h3 { color:#1e3a8a; font-size:16px; margin-top:22px; }
+  .step { display:flex; gap:14px; margin:14px 0; align-items:flex-start; }
+  .stepnum { flex-shrink:0; width:30px; height:30px; border-radius:50%; background:#f4941e; color:#14245c; font-weight:bold; display:flex; align-items:center; justify-content:center; }
+  .note { background:#fff8ec; border:1px solid #fde3b8; border-radius:10px; padding:12px 16px; font-size:14px; margin:14px 0; }
+  .credentials { background:#eef6ff; border:1px solid #bcdcff; border-radius:10px; padding:14px 18px; font-family:monospace; font-size:14px; }
+  svg { max-width:100%; height:auto; display:block; margin:16px auto; }
+  .diagram-wrap { background:#f8f9fc; border-radius:12px; padding:16px; border:1px dashed #c7ceE0; }
+  table { width:100%; border-collapse: collapse; font-size:14px; }
+  td, th { border:1px solid #e3e7f0; padding:8px 10px; text-align:left; }
+  th { background:#14245c; color:#fff; }
+  .status-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+  footer { text-align:center; color:#8891a8; font-size:12px; padding:20px; }
+</style>
+</head>
+<body>
+<div class="tricolor"></div>
+<header>
+  <h1>भेट व्यवस्थापन प्रणाली — वापर मार्गदर्शक</h1>
+  <p>जिल्हाधिकारी कार्यालय, जालना | Visitor Management System — User Guide</p>
+</header>
+
+<main>
+
+<section>
+  <h2>१. प्रणाली म्हणजे काय?</h2>
+  <p>ही एक संगणकीय प्रणाली आहे जी जिल्हाधिकारी कार्यालयात येणाऱ्या प्रत्येक अभ्यागताची (visitor) नोंद ठेवते,
+  त्यांना एक टोकन क्रमांक देते, त्यांचा अर्ज योग्य विभागाकडे आपोआप (AI च्या मदतीने) पाठवते, आणि अर्जदार
+  स्वतः घरबसल्या आपल्या अर्जाची सद्यस्थिती पाहू शकतो.</p>
+  <div class="note">📌 ही प्रणाली मोबाईल आणि संगणक दोन्हीवर वापरता येते. इंटरनेट ब्राउझर (Chrome) मध्ये फक्त
+  वेबसाईटची लिंक उघडायची आहे — वेगळे अॅप डाउनलोड करण्याची गरज नाही.</div>
+</section>
+
+<section>
+  <h2>२. अभ्यागत नोंदणी (काउंटरवर)</h2>
+  <p>कार्यालयाच्या प्रवेशद्वारावरील संगणकावर मुख्य वेबसाईट उघडा. हे पान सर्वांसाठी खुले आहे — लॉगिनची गरज नाही.</p>
+
+  <div class="step"><div class="stepnum">१</div><div>अभ्यागताचे <b>नाव, मोबाईल क्रमांक</b> टाका.</div></div>
+  <div class="step"><div class="stepnum">२</div><div><b>भेटीचा विषय</b> थोडक्यात लिहा (उदा. "जमीन मोजणीबाबत तक्रार").</div></div>
+  <div class="step"><div class="stepnum">३</div><div><b>पत्ता, गाव</b> टाका, आणि <b>तालुका / जिल्हा</b> ड्रॉपडाऊनमधून निवडा.
+  जालना जिल्ह्याबाहेरील अभ्यागत असल्यास "Other" पर्याय निवडून तालुका/जिल्ह्याचे नाव टाइप करा.</div></div>
+  <div class="step"><div class="stepnum">४</div><div>अर्जदाराकडे लेखी अर्ज (PDF किंवा फोटो) असल्यास <b>"अपलोड करा"</b> बटणावर क्लिक करून तो जोडा (ऐच्छिक).</div></div>
+  <div class="step"><div class="stepnum">५</div><div><b>"नोंदणी सबमिट करा"</b> बटण दाबा. लगेच एक <b>टोकन क्रमांक</b>
+  (उदा. JLN/20260720/0001) स्क्रीनवर दिसेल — तो अभ्यागताला सांगा किंवा प्रिंट काढून द्या.</div></div>
+
+  <div class="diagram-wrap">
+  <svg viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg">
+    <rect width="760" height="340" fill="#ffffff"/>
+    <rect x="0" y="0" width="760" height="46" fill="#14245c"/>
+    <circle cx="30" cy="23" r="14" fill="#f4941e"/>
+    <text x="55" y="28" fill="#ffffff" font-size="15" font-weight="bold">जिल्हाधिकारी कार्यालय, जालना — भेट नोंदणी</text>
+    <rect x="30" y="70" width="330" height="34" rx="6" fill="#f3f5fa" stroke="#c7ceE0"/>
+    <text x="40" y="92" font-size="13" fill="#555">Visitor Name</text>
+    <rect x="400" y="70" width="330" height="34" rx="6" fill="#f3f5fa" stroke="#c7ceE0"/>
+    <text x="410" y="92" font-size="13" fill="#555">Mobile Number</text>
+    <rect x="30" y="118" width="700" height="50" rx="6" fill="#f3f5fa" stroke="#c7ceE0"/>
+    <text x="40" y="140" font-size="13" fill="#555">Subject for Meeting</text>
+    <rect x="30" y="182" width="330" height="34" rx="6" fill="#f3f5fa" stroke="#c7ceE0"/>
+    <text x="40" y="204" font-size="13" fill="#555">Address</text>
+    <rect x="400" y="182" width="330" height="34" rx="6" fill="#f3f5fa" stroke="#c7ceE0"/>
+    <text x="410" y="204" font-size="13" fill="#555">Village</text>
+    <rect x="30" y="230" width="215" height="34" rx="6" fill="#eef2fb" stroke="#8fa3d6"/>
+    <text x="40" y="252" font-size="13" fill="#14245c">Taluka ▾ (Jalna 8)</text>
+    <rect x="260" y="230" width="215" height="34" rx="6" fill="#eef2fb" stroke="#8fa3d6"/>
+    <text x="270" y="252" font-size="13" fill="#14245c">District ▾ (incl. Other)</text>
+    <rect x="490" y="230" width="240" height="34" rx="6" fill="#fdf3e2" stroke="#f4941e" stroke-dasharray="4 3"/>
+    <text x="500" y="252" font-size="13" fill="#a5670c">📎 Upload PDF / Image</text>
+    <rect x="30" y="284" width="700" height="40" rx="8" fill="#f4941e"/>
+    <text x="340" y="309" font-size="14" font-weight="bold" fill="#14245c">नोंदणी सबमिट करा / SUBMIT</text>
+  </svg>
+  </div>
+  <p style="text-align:center;font-size:12px;color:#8891a8">चित्र १: अभ्यागत नोंदणी फॉर्मचा नमुना (Wireframe)</p>
+</section>
+
+<section>
+  <h2>३. अर्जाची सद्यस्थिती तपासणे (अर्जदारासाठी)</h2>
+  <p>अर्जदार घरबसल्या <b>"/track"</b> या पानावर जाऊन आपला टोकन क्रमांक टाकून स्थिती पाहू शकतो.
+  हवे असल्यास मोबाईल क्रमांकही टाकावा लागतो (सुरक्षिततेसाठी).</p>
+  <div class="diagram-wrap">
+  <svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+    <rect width="760" height="260" fill="#ffffff"/>
+    <text x="30" y="35" font-size="16" font-weight="bold" fill="#14245c">आपल्या अर्जाची स्थिती तपासा</text>
+    <rect x="30" y="55" width="420" height="36" rx="6" fill="#f3f5fa" stroke="#c7ceE0"/>
+    <text x="40" y="78" font-size="13" fill="#555">Token Number e.g. JLN/20260720/0001</text>
+    <rect x="470" y="55" width="150" height="36" rx="6" fill="#14245c"/>
+    <text x="505" y="78" font-size="13" fill="#fff">Track</text>
+    <rect x="30" y="112" width="700" height="120" rx="10" fill="#f8f9fc" stroke="#e3e7f0"/>
+    <text x="45" y="138" font-size="14" font-weight="bold" fill="#14245c">JLN/20260720/0001</text>
+    <rect x="600" y="122" width="110" height="24" rx="12" fill="#fdf3e2"/>
+    <text x="615" y="138" font-size="11" fill="#a5670c">IN PROGRESS</text>
+    <text x="45" y="165" font-size="12" fill="#555">Assigned Department: महसूल विभाग</text>
+    <text x="45" y="185" font-size="12" fill="#555">Status History: नोंदणी → नियुक्त केले → कार्यवाही सुरू</text>
+    <rect x="45" y="198" width="230" height="26" rx="6" fill="#128a3e"/>
+    <text x="60" y="215" font-size="11" fill="#fff">📄 Download Forwarding Letter</text>
+  </svg>
+  </div>
+  <p style="text-align:center;font-size:12px;color:#8891a8">चित्र २: अर्ज ट्रॅकिंग पानाचा नमुना</p>
+</section>
+
+<section>
+  <h2>४. PA / जिल्हाधिकारी लॉगिन — दैनंदिन कामकाज</h2>
+  <div class="step"><div class="stepnum">१</div><div>वेबसाईटवर वरच्या उजव्या कोपऱ्यातील <b>"Staff Login"</b> वर क्लिक करा. आपला ई-मेल व पासवर्ड टाका.</div></div>
+  <div class="step"><div class="stepnum">२</div><div><b>Overview</b> टॅबमध्ये आजचे एकूण अभ्यागत, प्रलंबित अर्ज, विभागनिहाय आलेख (chart) दिसतील.</div></div>
+  <div class="step"><div class="stepnum">३</div><div><b>Visitors</b> टॅबमध्ये सर्व अभ्यागतांची यादी दिसते. दिनांक/स्थितीनुसार फिल्टर करता येते.
+  येथूनच <b>Excel</b> किंवा <b>PDF</b> बटणावर क्लिक करून त्या दिवसाचा संपूर्ण अहवाल डाउनलोड करता येतो —
+  ज्यात प्रत्येक अभ्यागत किती वेळा आला, शेवटी कोणत्या विभागाकडे गेला, हे सुद्धा दिसते.</div></div>
+  <div class="step"><div class="stepnum">४</div><div>प्रत्येक अर्जासाठी AI ने सुचवलेला विभाग आधीच निवडलेला दिसेल. आवश्यक वाटल्यास तो ड्रॉपडाऊनमधून
+  बदलून दुसऱ्या विभागाकडे पाठवता येतो.</div></div>
+  <div class="step"><div class="stepnum">५</div><div><b>"Update"</b> बटण दाबून <b>"Generate Letter"</b> निवडल्यास मराठी पत्र (पत्रशीर्षकासह) आपोआप तयार
+  होऊन PDF स्वरूपात उघडेल — तेच पत्र अर्जदारालाही ट्रॅकिंग पानावर दिसते.</div></div>
+  <div class="step"><div class="stepnum">६</div><div><b>Staff Approvals</b> टॅबमध्ये नवीन नोंदणी केलेल्या विभाग अधिकाऱ्यांचे खाते मंजूर/नामंजूर करता येते.</div></div>
+
+  <div class="diagram-wrap">
+  <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+    <rect width="760" height="300" fill="#ffffff"/>
+    <rect x="0" y="0" width="760" height="42" fill="#14245c"/>
+    <text x="20" y="27" fill="#fff" font-size="14" font-weight="bold">PA Dashboard</text>
+    <rect x="20" y="55" width="150" height="70" rx="10" fill="#f8f9fc" stroke="#e3e7f0"/>
+    <text x="32" y="80" font-size="20" font-weight="bold" fill="#14245c">128</text>
+    <text x="32" y="100" font-size="10" fill="#888">Total Applications</text>
+    <rect x="185" y="55" width="150" height="70" rx="10" fill="#f8f9fc" stroke="#e3e7f0"/>
+    <text x="197" y="80" font-size="20" font-weight="bold" fill="#f4941e">14</text>
+    <text x="197" y="100" font-size="10" fill="#888">Today</text>
+    <rect x="350" y="55" width="150" height="70" rx="10" fill="#f8f9fc" stroke="#e3e7f0"/>
+    <text x="362" y="80" font-size="20" font-weight="bold" fill="#d97706">22</text>
+    <text x="362" y="100" font-size="10" fill="#888">Pending/In Progress</text>
+    <rect x="515" y="55" width="150" height="70" rx="10" fill="#f8f9fc" stroke="#e3e7f0"/>
+    <text x="527" y="80" font-size="20" font-weight="bold" fill="#128a3e">92</text>
+    <text x="527" y="100" font-size="10" fill="#888">Resolved</text>
+    <rect x="20" y="140" width="720" height="140" rx="10" fill="#f8f9fc" stroke="#e3e7f0"/>
+    <text x="35" y="162" font-size="12" font-weight="bold" fill="#14245c">Visitors Table</text>
+    <rect x="35" y="172" width="670" height="20" fill="#eef2fb"/>
+    <rect x="35" y="196" width="670" height="20" fill="#ffffff"/>
+    <rect x="35" y="220" width="670" height="20" fill="#eef2fb"/>
+    <rect x="600" y="250" width="60" height="22" rx="5" fill="#128a3e"/>
+    <text x="612" y="265" font-size="9" fill="#fff">Excel</text>
+    <rect x="665" y="250" width="60" height="22" rx="5" fill="#14245c"/>
+    <text x="680" y="265" font-size="9" fill="#fff">PDF</text>
+  </svg>
+  </div>
+  <p style="text-align:center;font-size:12px;color:#8891a8">चित्र ३: PA डॅशबोर्डचा नमुना</p>
+</section>
+
+<section>
+  <h2>५. विभाग अधिकारी लॉगिन</h2>
+  <div class="step"><div class="stepnum">१</div><div>प्रथमच वापरणाऱ्या अधिकाऱ्याने <b>"New Staff Registration"</b> मधून आपला विभाग निवडून नोंदणी करावी.
+  PA/जिल्हाधिकारी यांनी मंजुरी दिल्यानंतरच लॉगिन करता येईल.</div></div>
+  <div class="step"><div class="stepnum">२</div><div>लॉगिन केल्यावर फक्त <b>आपल्याच विभागाकडे</b> नियुक्त झालेले अर्ज दिसतील.</div></div>
+  <div class="step"><div class="stepnum">३</div><div>प्रत्येक अर्जासमोरील <b>"Update"</b> बटणावरून स्थिती बदलता येते:</div></div>
+
+  <table>
+    <tr><th>स्थिती (Status)</th><th>अर्थ</th></tr>
+    <tr><td>PENDING</td><td>अद्याप कोणालाही नियुक्त नाही</td></tr>
+    <tr><td>ASSIGNED</td><td>विभागाकडे नियुक्त, कामकाज सुरू व्हायचे आहे</td></tr>
+    <tr><td>IN PROGRESS</td><td>कार्यवाही सुरू आहे</td></tr>
+    <tr><td>PARTIALLY RESOLVED</td><td>अंशतः निकाली</td></tr>
+    <tr><td>RESOLVED</td><td>पूर्णपणे निकाली काढले</td></tr>
+    <tr><td>CLOSED</td><td>प्रकरण बंद</td></tr>
+    <tr><td>REJECTED</td><td>अर्ज नाकारला (कारणासह remark टाकावे)</td></tr>
+  </table>
+  <div class="note">📌 स्थिती बदलताच अर्जदाराला ट्रॅकिंग पानावर लगेच अद्ययावत माहिती दिसते.</div>
+</section>
+
+<section>
+  <h2>६. सुरुवातीचे लॉगिन तपशील</h2>
+  <p>प्रणाली पहिल्यांदा सुरू केल्यावर खालील दोन खाती आधीच तयार असतील (कृपया लगेच पासवर्ड बदला):</p>
+  <div class="credentials">
+    Collector: collector@jalna.gov.in / Jalna@Collector2026<br>
+    PA: pa@jalna.gov.in / Jalna@PA2026
+  </div>
+  <div class="note">⚠️ पासवर्ड बदलण्यासाठी लॉगिन पानावरील "Forgot Password" वापरून ई-मेलद्वारे नवीन पासवर्ड सेट करा.</div>
+</section>
+
+<section>
+  <h2>७. वारंवार विचारले जाणारे प्रश्न</h2>
+  <p><b>प्र. अर्जदाराकडे मोबाईल फोन/स्मार्टफोन नसेल तर?</b><br>
+  उ. काही हरकत नाही — नोंदणी काउंटरवरील कर्मचारीच सर्व माहिती भरतो. अर्जदाराला फक्त टोकन क्रमांक लिहून/छापून द्यावा.</p>
+  <p><b>प्र. AI ने चुकीचा विभाग निवडला तर?</b><br>
+  उ. PA/जिल्हाधिकारी कधीही Visitors टॅबमधून विभाग बदलू शकतात.</p>
+  <p><b>प्र. एकाच व्यक्तीने पूर्वीही अर्ज केला असेल तर कळेल का?</b><br>
+  उ. होय — मोबाईल क्रमांकावरून प्रणाली आपोआप मागील भेटींची संख्या व शेवटचा विभाग दाखवते.</p>
+</section>
+
+</main>
+<div class="tricolor"></div>
+<footer>जिल्हाधिकारी कार्यालय, जालना — Visitor Management System</footer>
+</body>
+</html>

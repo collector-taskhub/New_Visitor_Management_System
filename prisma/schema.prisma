@@ -1,0 +1,147 @@
+// Visitor Management System - District Collector Office, Jalna
+// PROTOTYPE DATABASE: SQLite (zero-config, runs locally with no account needed)
+// For production deployment, switch provider to "postgresql" and point DATABASE_URL
+// at a free Neon.tech database - see DEPLOYMENT_GUIDE.md ("Switching to Postgres for production").
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+     provider  = "postgresql"
+     url       = env("DATABASE_URL")
+     directUrl = env("DIRECT_URL")
+
+}
+
+// NOTE: SQLite has no native enum type, so Role/VisitorStatus are plain Strings here.
+// Valid values are enforced in application code (see src/lib/masterData.ts and API routes).
+// Role:            ADMIN | COLLECTOR | PA | DEPARTMENT_OFFICER
+// VisitorStatus:   PENDING | ASSIGNED | IN_PROGRESS | PARTIALLY_RESOLVED | RESOLVED | CLOSED | REJECTED
+
+model Department {
+  id           String   @id @default(cuid())
+  name         String   @unique          // English name e.g. "Revenue Department"
+  nameMarathi  String                     // Marathi name e.g. "महसूल विभाग"
+  code         String   @unique          // short code e.g. "REV"
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  users        User[]
+  visitors     Visitor[]
+}
+
+model User {
+  id                String    @id @default(cuid())
+  name              String
+  nameMarathi       String?
+  email             String    @unique
+  mobile            String?
+  passwordHash      String
+  role              String                // ADMIN | COLLECTOR | PA | DEPARTMENT_OFFICER
+  designation       String?               // e.g. "Tahsildar", "PA to Collector"
+  departmentId      String?
+  department        Department?           @relation(fields: [departmentId], references: [id])
+  active            Boolean   @default(true)
+
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  assignedVisitors  Visitor[]        @relation("AssignedOfficer")
+  statusLogs        StatusLog[]
+  auditLogs         AuditLog[]
+}
+
+model Visitor {
+  id                String    @id @default(cuid())
+  tokenNo           String    @unique   // e.g. JLN/20260720/0001
+
+  name              String
+  mobile            String
+  address           String
+  village           String
+  taluka            String
+  district          String
+
+  subject           String
+
+  attachmentUrl     String?             // uploaded application (img/pdf) - Vercel Blob URL
+  attachmentType    String?             // "pdf" | "image"
+
+  status            String    @default("PENDING")
+
+  assignedDepartmentId String?
+  assignedDepartment   Department? @relation(fields: [assignedDepartmentId], references: [id])
+
+  assignedOfficerId String?
+  assignedOfficer   User?    @relation("AssignedOfficer", fields: [assignedOfficerId], references: [id])
+
+  // AI classification results
+  aiDepartmentGuess String?             // department name suggested by AI
+  aiConfidence      Float?
+  aiSummary         String?
+  aiRawResponse     String?
+
+  letterGenerated   Boolean  @default(false)
+  letterUrl         String?
+  letterGeneratedAt DateTime?
+
+  meetingWithCollector Boolean @default(true)  // visitor wants to meet Collector
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  statusLogs        StatusLog[]
+  auditLogs         AuditLog[]
+
+  @@index([mobile])
+  @@index([tokenNo])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model StatusLog {
+  id          String   @id @default(cuid())
+  visitorId   String
+  visitor     Visitor  @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  status      String
+  remark      String?
+  updatedById String?
+  updatedBy   User?    @relation(fields: [updatedById], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  visitorId   String?
+  visitor     Visitor? @relation(fields: [visitorId], references: [id], onDelete: SetNull)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String              // e.g. "REGISTERED", "REASSIGNED", "LETTER_GENERATED"
+  details     String?
+  createdAt   DateTime @default(now())
+}
+
+model TalukaMaster {
+  id       String @id @default(cuid())
+  name     String
+  district String
+  active   Boolean @default(true)
+
+  @@unique([name, district])
+}
+
+model DistrictMaster {
+  id     String @id @default(cuid())
+  name   String @unique
+  active Boolean @default(true)
+}
+
+// Simple counter table to generate atomic daily-serial token numbers safely
+model TokenCounter {
+  dateKey String @id  // format YYYYMMDD
+  count   Int    @default(0)
+}
