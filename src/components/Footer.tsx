@@ -17,9 +17,9 @@ export default function Footer() {
           </ul>
         </div>
         <div>
-          <div className="font-semibold text-white mb-2">Office Hours</div>
-          <p>Monday - Saturday, 10:00 AM - 6:00 PM</p>
-          <p>(2nd &amp; 4th Saturday closed)</p>
+	<div className="font-semibold text-white mb-2">Office Hours</div>
+	<p>Monday - Friday, 9:45 AM - 6:15 PM</p>
+	<p>Saturday, Sunday & Public Holidays closed</p>
         </div>
       </div>
       <div className="tricolor-bar" />

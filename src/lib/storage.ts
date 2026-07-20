@@ -6,12 +6,6 @@ export interface SavedFile {
   type: string;
 }
 
-/**
- * Saves a file and returns a public URL.
- * - If BLOB_READ_WRITE_TOKEN is set (Vercel deployment), uploads to Vercel Blob.
- * - Otherwise (local prototype), writes to /public/uploads and returns a relative URL
- *   that Next.js serves automatically - zero cloud account needed to try the system.
- */
 export async function saveFile(
   relativePath: string,
   data: Buffer | Blob,
@@ -27,7 +21,12 @@ export async function saveFile(
     return { url: blob.url, type: contentType };
   }
 
-  // Local fallback
+  if (process.env.VERCEL) {
+    throw new Error(
+      "File storage is not set up yet. Ask your administrator to add Vercel Blob storage (see DEPLOYMENT_GUIDE.md, Step 6) - until then, registrations work fine without an attached file."
+    );
+  }
+
   const uploadsDir = path.join(process.cwd(), "public", "uploads");
   fs.mkdirSync(uploadsDir, { recursive: true });
 
