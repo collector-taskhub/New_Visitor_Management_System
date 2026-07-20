@@ -48,12 +48,15 @@ export async function POST(req: Request) {
       data: { visitorId: visitor.id, action: "REGISTERED", details: `Token ${tokenNo} issued` },
     });
 
-    // Fire off AI classification in the background - does not block the visitor's response.
-    // In serverless environments this still runs to completion within the same invocation,
-    // but we don't await it before responding so the counter experience feels instant.
-    classifyAndAssign(visitor.id, data.subject).catch((e) =>
-      console.error("AI classification failed for", visitor.id, e)
-    );
+    // Run AI classification BEFORE responding. Serverless functions (Vercel) can
+    // freeze/terminate right after the response is sent, so "fire and forget"
+    // background work is unreliable here - awaiting it guarantees it actually runs.
+    // Typically adds well under 2 seconds with Gemini's flash model.
+    try {
+      await classifyAndAssign(visitor.id, data.subject);
+    } catch (e) {
+      console.error("AI classification failed for", visitor.id, e);
+    }
 
     return NextResponse.json({ success: true, tokenNo, visitorId: visitor.id });
   } catch (err: any) {

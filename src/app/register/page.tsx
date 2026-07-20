@@ -3,11 +3,15 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AddDepartmentModal from "@/components/AddDepartmentModal";
 import Link from "next/link";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
+const ADD_NEW_SENTINEL = "__add_new_department__";
+
 export default function RegisterPage() {
   const [departments, setDepartments] = useState<{ id: string; name: string; nameMarathi: string }[]>([]);
+  const [showAddDept, setShowAddDept] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -22,12 +26,30 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    loadDepartments();
+  }, []);
+
+  function loadDepartments() {
     fetch("/api/departments")
       .then((r) => r.json())
       .then((d) => setDepartments(d.departments || []));
-  }, []);
+  }
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  function handleDepartmentChange(value: string) {
+    if (value === ADD_NEW_SENTINEL) {
+      setShowAddDept(true);
+      return;
+    }
+    set("departmentId", value);
+  }
+
+  function handleDepartmentCreated(dept: { id: string; name: string; nameMarathi: string }) {
+    setDepartments((prev) => [...prev, dept].sort((a, b) => a.name.localeCompare(b.name)));
+    set("departmentId", dept.id);
+    setShowAddDept(false);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -83,13 +105,19 @@ export default function RegisterPage() {
               </select>
 
               {form.role === "DEPARTMENT_OFFICER" && (
-                <select required className="input" value={form.departmentId} onChange={(e) => set("departmentId", e.target.value)}>
+                <select
+                  required
+                  className="input"
+                  value={form.departmentId}
+                  onChange={(e) => handleDepartmentChange(e.target.value)}
+                >
                   <option value="">-- Select Department --</option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.name}
                     </option>
                   ))}
+                  <option value={ADD_NEW_SENTINEL}>+ My department isn't listed - add it</option>
                 </select>
               )}
 
@@ -111,6 +139,11 @@ export default function RegisterPage() {
         </div>
       </main>
       <Footer />
+
+      {showAddDept && (
+        <AddDepartmentModal onClose={() => setShowAddDept(false)} onCreated={handleDepartmentCreated} />
+      )}
+
       <style jsx global>{`
         .input {
           width: 100%;
