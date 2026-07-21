@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import StatusBadge from "./StatusBadge";
-import { FileDown, RefreshCw, FileText, Paperclip, ChevronDown } from "lucide-react";
+import { FileDown, RefreshCw, FileText, Paperclip, ChevronDown, AlertTriangle } from "lucide-react";
 
 const STATUS_OPTIONS = [
   "PENDING",
@@ -22,7 +22,7 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
   const [visitors, setVisitors] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ date: "", status: "", search: "" });
+  const [filters, setFilters] = useState({ date: "", status: "", search: "", urgentOnly: false });
   const [openRow, setOpenRow] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -31,6 +31,7 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
     if (filters.date) params.set("date", filters.date);
     if (filters.status) params.set("status", filters.status);
     if (filters.search) params.set("search", filters.search);
+    if (filters.urgentOnly) params.set("urgentOnly", "true");
     const res = await fetch(`/api/visitors?${params.toString()}`);
     const data = await res.json();
     setVisitors(data.visitors || []);
@@ -101,6 +102,16 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
         <button onClick={load} className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50" title="Refresh">
           <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
         </button>
+        <button
+          onClick={() => setFilters((f) => ({ ...f, urgentOnly: !f.urgentOnly }))}
+          className={`flex items-center gap-1 text-sm px-3 py-2 rounded-lg border transition ${
+            filters.urgentOnly
+              ? "bg-red-50 border-red-300 text-red-700 font-semibold"
+              : "border-gray-300 text-gray-600 hover:bg-gray-50"
+          }`}
+        >
+          <AlertTriangle size={14} /> Urgent Only
+        </button>
 
         {canExport && (
           <div className="flex gap-2 ml-auto">
@@ -140,6 +151,14 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
               <tr key={v.id} className="border-b last:border-0 align-top hover:bg-gray-50/60">
                 <td className="py-3 pr-3 font-medium text-navy whitespace-nowrap">
                   {v.tokenNo}
+                  {v.aiUrgency === "URGENT" && (
+                    <span
+                      className="ml-1 inline-flex items-center gap-0.5 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full align-middle cursor-help"
+                      title={v.aiUrgencyReason || "AI flagged this as urgent"}
+                    >
+                      <AlertTriangle size={10} /> URGENT
+                    </span>
+                  )}
                   {v.attachmentUrl && (
                     <a href={v.attachmentUrl} target="_blank" rel="noreferrer" className="ml-1 text-gray-400 hover:text-navy inline-block align-middle" title="View Uploaded Application">
                       <Paperclip size={13} />

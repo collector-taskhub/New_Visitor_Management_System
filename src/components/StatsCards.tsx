@@ -6,10 +6,11 @@ import {
   PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { Users, CalendarCheck, Building2, Clock } from "lucide-react";
+import DailyBriefing from "./DailyBriefing";
 
 const COLORS = ["#14245c", "#f4941e", "#128a3e", "#d4af37", "#1e3a8a", "#e11d48", "#0891b2"];
 
-export default function StatsCards() {
+export default function StatsCards({ role }: { role?: "PA" | "COLLECTOR" | "ADMIN" | "DEPARTMENT_OFFICER" }) {
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
@@ -18,8 +19,11 @@ export default function StatsCards() {
 
   if (!stats) return <div className="text-sm text-gray-400 py-6">Loading dashboard...</div>;
 
+  const showBriefing = role === "PA" || role === "COLLECTOR" || role === "ADMIN";
+
   return (
     <div className="space-y-6">
+      {showBriefing && <DailyBriefing />}
       <div className="grid sm:grid-cols-4 gap-4">
         <Card icon={<Users size={20} />} label="Total Applications" value={stats.total} color="bg-navy" />
         <Card icon={<CalendarCheck size={20} />} label="Today" value={stats.todayCount} color="bg-saffron" />

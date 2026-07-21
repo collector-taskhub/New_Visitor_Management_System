@@ -1,21 +1,20 @@
 // Visitor Management System - District Collector Office, Jalna
-// PROTOTYPE DATABASE: SQLite (zero-config, runs locally with no account needed)
-// For production deployment, switch provider to "postgresql" and point DATABASE_URL
-// at a free Neon.tech database - see DEPLOYMENT_GUIDE.md ("Switching to Postgres for production").
+// PRODUCTION DATABASE: PostgreSQL (Neon.tech free tier)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-     provider  = "postgresql"
-     url       = env("DATABASE_URL")
-     directUrl = env("DIRECT_URL")
-
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// NOTE: SQLite has no native enum type, so Role/VisitorStatus are plain Strings here.
-// Valid values are enforced in application code (see src/lib/masterData.ts and API routes).
+// NOTE: Role/VisitorStatus are plain Strings, not native Prisma enums (kept this
+// way for compatibility across both the SQLite prototype and Postgres production
+// setups). Valid values are enforced in application code
+// (see src/lib/masterData.ts and API routes).
 // Role:            ADMIN | COLLECTOR | PA | DEPARTMENT_OFFICER
 // VisitorStatus:   PENDING | ASSIGNED | IN_PROGRESS | PARTIALLY_RESOLVED | RESOLVED | CLOSED | REJECTED
 
@@ -84,6 +83,8 @@ model Visitor {
   aiConfidence      Float?
   aiSummary         String?
   aiRawResponse     String?
+  aiUrgency         String?             // "URGENT" | "NORMAL"
+  aiUrgencyReason   String?             // brief Marathi reason, shown on hover
 
   letterGenerated   Boolean  @default(false)
   letterUrl         String?
@@ -144,4 +145,12 @@ model DistrictMaster {
 model TokenCounter {
   dateKey String @id  // format YYYYMMDD
   count   Int    @default(0)
+}
+
+// Caches the AI-generated daily briefing so it's only generated once per day
+// (regenerated on demand via the Refresh button), not on every dashboard load.
+model DailyBriefing {
+  date        String   @id // format YYYY-MM-DD
+  content     String
+  generatedAt DateTime @default(now())
 }

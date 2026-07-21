@@ -33,7 +33,7 @@ export default function DashboardTabs({ role }: { role: "PA" | "COLLECTOR" | "AD
         ))}
       </div>
 
-      {tab === "overview" && <StatsCards />}
+      {tab === "overview" && <StatsCards role={role} />}
       {tab === "visitors" && <VisitorTable role={role} />}
       {tab === "staff" && (
         <div className="bg-white rounded-2xl card-shadow p-5">

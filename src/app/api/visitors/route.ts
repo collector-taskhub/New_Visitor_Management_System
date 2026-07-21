@@ -90,6 +90,8 @@ async function classifyAndAssign(
       aiConfidence: result.confidence,
       aiSummary: result.summary,
       aiRawResponse: result.raw,
+      aiUrgency: result.urgency,
+      aiUrgencyReason: result.urgencyReason || null,
       assignedDepartmentId: dept?.id,
       status: dept ? "ASSIGNED" : "PENDING",
     },
@@ -107,6 +109,12 @@ async function classifyAndAssign(
       data: { visitorId, action: "AI_ASSIGNED", details: result.departmentName },
     });
   }
+
+  if (result.urgency === "URGENT") {
+    await prisma.auditLog.create({
+      data: { visitorId, action: "AI_FLAGGED_URGENT", details: result.urgencyReason || undefined },
+    });
+  }
 }
 
 // STAFF: list visitors with filters - PA, Collector see all; Department officer sees only their department
@@ -119,6 +127,7 @@ export async function GET(req: Request) {
   const status = searchParams.get("status");
   const departmentId = searchParams.get("departmentId");
   const search = searchParams.get("search");
+  const urgentOnly = searchParams.get("urgentOnly") === "true";
 
   const where: any = {};
 
@@ -129,6 +138,7 @@ export async function GET(req: Request) {
   }
 
   if (status) where.status = status;
+  if (urgentOnly) where.aiUrgency = "URGENT";
 
   if (date) {
     const start = new Date(`${date}T00:00:00`);
