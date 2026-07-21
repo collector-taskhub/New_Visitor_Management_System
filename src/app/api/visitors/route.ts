@@ -5,6 +5,7 @@ import { generateTokenNo } from "@/lib/tokenGenerator";
 import { classifyVisitorApplication } from "@/lib/aiClassify";
 import { fetchAttachmentBase64 } from "@/lib/fetchAttachment";
 import { requireRole } from "@/lib/apiAuth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const registerSchema = z.object({
   name: z.string().min(2),
@@ -21,6 +22,18 @@ const registerSchema = z.object({
 // PUBLIC: visitor self-registration counter
 export async function POST(req: Request) {
   try {
+    // Generous limit (60/hour per IP) because a real counter computer shares
+    // one office IP and may register many genuine visitors in a busy hour -
+    // this is meant to catch automated abuse, not slow down real staff.
+    const ip = getClientIp(req);
+    const limit = await checkRateLimit("visitor-register", ip, { maxAttempts: 60, windowMinutes: 60 });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "Too many registrations from this location right now. Please wait a few minutes and try again." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+      );
+    }
+
     const body = await req.json();
     const data = registerSchema.parse(body);
 
@@ -49,10 +62,6 @@ export async function POST(req: Request) {
       data: { visitorId: visitor.id, action: "REGISTERED", details: `Token ${tokenNo} issued` },
     });
 
-    // Run AI classification BEFORE responding. Serverless functions (Vercel) can
-    // freeze/terminate right after the response is sent, so "fire and forget"
-    // background work is unreliable here - awaiting it guarantees it actually runs.
-    // Typically adds well under 2 seconds with Gemini's flash model.
     try {
       await classifyAndAssign(visitor.id, data.subject, data.attachmentUrl, data.attachmentType);
     } catch (e) {
@@ -123,11 +132,12 @@ export async function GET(req: Request) {
   if (!user) return response;
 
   const { searchParams } = new URL(req.url);
-  const date = searchParams.get("date"); // YYYY-MM-DD
+  const date = searchParams.get("date");
   const status = searchParams.get("status");
   const departmentId = searchParams.get("departmentId");
   const search = searchParams.get("search");
   const urgentOnly = searchParams.get("urgentOnly") === "true";
+  const overdueOnly = searchParams.get("overdueOnly") === "true";
 
   const where: any = {};
 
@@ -140,7 +150,12 @@ export async function GET(req: Request) {
   if (status) where.status = status;
   if (urgentOnly) where.aiUrgency = "URGENT";
 
-  if (date) {
+  if (overdueOnly) {
+    // "Overdue" = still open (not resolved/closed/rejected) and older than 7 days
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    where.status = { in: ["PENDING", "ASSIGNED", "IN_PROGRESS", "PARTIALLY_RESOLVED"] };
+    where.createdAt = { lt: sevenDaysAgo };
+  } else if (date) {
     const start = new Date(`${date}T00:00:00`);
     const end = new Date(`${date}T23:59:59`);
     where.createdAt = { gte: start, lte: end };
@@ -156,12 +171,11 @@ export async function GET(req: Request) {
 
   const visitors = await prisma.visitor.findMany({
     where,
-    include: { assignedDepartment: true, assignedOfficer: true },
+    include: { assignedDepartment: true, assignedOfficer: true, urgencyReviewedBy: true },
     orderBy: { createdAt: "desc" },
     take: 500,
   });
 
-  // Compute all-time visit count + last-assigned department per mobile number
   const mobiles = [...new Set(visitors.map((v) => v.mobile))];
   const history = await prisma.visitor.findMany({
     where: { mobile: { in: mobiles } },

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const schema = z.object({
   name: z.string().min(2),
@@ -15,6 +16,18 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   try {
+    // 5 registration attempts per hour per IP - staff registration is rare
+    // (new employees only), so this comfortably covers legitimate use while
+    // blocking automated spam-account creation.
+    const ip = getClientIp(req);
+    const limit = await checkRateLimit("staff-register", ip, { maxAttempts: 5, windowMinutes: 60 });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "Too many registration attempts from this location. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+      );
+    }
+
     const body = await req.json();
     const data = schema.parse(body);
 
@@ -32,8 +45,6 @@ export async function POST(req: Request) {
 
     const passwordHash = await bcrypt.hash(data.password, 10);
 
-    // New self-registered accounts are inactive until approved by PA/Collector,
-    // EXCEPT there must always be at least one active COLLECTOR/PA seeded via `npm run seed`.
     const user = await prisma.user.create({
       data: {
         name: data.name,

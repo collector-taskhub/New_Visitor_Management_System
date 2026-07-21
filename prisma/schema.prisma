@@ -20,9 +20,9 @@ datasource db {
 
 model Department {
   id           String   @id @default(cuid())
-  name         String   @unique          // English name e.g. "Revenue Department"
-  nameMarathi  String                     // Marathi name e.g. "महसूल विभाग"
-  code         String   @unique          // short code e.g. "REV"
+  name         String   @unique
+  nameMarathi  String
+  code         String   @unique
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
@@ -37,8 +37,8 @@ model User {
   email             String    @unique
   mobile            String?
   passwordHash      String
-  role              String                // ADMIN | COLLECTOR | PA | DEPARTMENT_OFFICER
-  designation       String?               // e.g. "Tahsildar", "PA to Collector"
+  role              String
+  designation       String?
   departmentId      String?
   department        Department?           @relation(fields: [departmentId], references: [id])
   active            Boolean   @default(true)
@@ -46,17 +46,25 @@ model User {
   resetToken        String?
   resetTokenExpiry  DateTime?
 
+  // Optional TOTP-based 2FA (free - no SMS provider needed). Not yet wired
+  // into the login flow; fields exist so this can be turned on without a
+  // further schema migration. See SECURITY_AND_OPERATIONS.md.
+  totpSecret        String?
+  totpEnabled       Boolean   @default(false)
+
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   assignedVisitors  Visitor[]        @relation("AssignedOfficer")
   statusLogs        StatusLog[]
   auditLogs         AuditLog[]
+  urgencyReviews    Visitor[]        @relation("UrgencyReviewedBy")
+  lettersConfirmed  Visitor[]        @relation("LetterConfirmedBy")
 }
 
 model Visitor {
   id                String    @id @default(cuid())
-  tokenNo           String    @unique   // e.g. JLN/20260720/0001
+  tokenNo           String    @unique
 
   name              String
   mobile            String
@@ -67,8 +75,8 @@ model Visitor {
 
   subject           String
 
-  attachmentUrl     String?             // uploaded application (img/pdf) - Vercel Blob URL
-  attachmentType    String?             // "pdf" | "image"
+  attachmentUrl     String?
+  attachmentType    String?
 
   status            String    @default("PENDING")
 
@@ -79,18 +87,36 @@ model Visitor {
   assignedOfficer   User?    @relation("AssignedOfficer", fields: [assignedOfficerId], references: [id])
 
   // AI classification results
-  aiDepartmentGuess String?             // department name suggested by AI
+  aiDepartmentGuess String?
   aiConfidence      Float?
   aiSummary         String?
   aiRawResponse     String?
-  aiUrgency         String?             // "URGENT" | "NORMAL"
-  aiUrgencyReason   String?             // brief Marathi reason, shown on hover
+  aiUrgency         String?
+  aiUrgencyReason   String?
+
+  // Human oversight of the AI's urgency flag - addresses "AI decision with no
+  // accountability trail": a staff member must actively acknowledge an urgent
+  // flag, which is logged (who, when), rather than the flag just sitting there.
+  urgencyReviewed    Boolean   @default(false)
+  urgencyReviewedById String?
+  urgencyReviewedBy   User?    @relation("UrgencyReviewedBy", fields: [urgencyReviewedById], references: [id])
+  urgencyReviewedAt   DateTime?
 
   letterGenerated   Boolean  @default(false)
   letterUrl         String?
   letterGeneratedAt DateTime?
+  // Who confirmed/reviewed the case before the letter was generated in their
+  // name - addresses "letter auto-signed with no review step".
+  letterConfirmedById String?
+  letterConfirmedBy   User?  @relation("LetterConfirmedBy", fields: [letterConfirmedById], references: [id])
 
-  meetingWithCollector Boolean @default(true)  // visitor wants to meet Collector
+  meetingWithCollector Boolean @default(true)
+
+  // Data retention: once a record is anonymized (per the retention policy),
+  // this is set and the PII fields above are overwritten/redacted. Statistics
+  // (status, department, dates) are preserved for continued reporting.
+  anonymized         Boolean   @default(false)
+  anonymizedAt        DateTime?
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -102,6 +128,7 @@ model Visitor {
   @@index([tokenNo])
   @@index([status])
   @@index([createdAt])
+  @@index([aiUrgency])
 }
 
 model StatusLog {
@@ -121,7 +148,7 @@ model AuditLog {
   visitor     Visitor? @relation(fields: [visitorId], references: [id], onDelete: SetNull)
   userId      String?
   user        User?    @relation(fields: [userId], references: [id])
-  action      String              // e.g. "REGISTERED", "REASSIGNED", "LETTER_GENERATED"
+  action      String
   details     String?
   createdAt   DateTime @default(now())
 }
@@ -141,16 +168,24 @@ model DistrictMaster {
   active Boolean @default(true)
 }
 
-// Simple counter table to generate atomic daily-serial token numbers safely
 model TokenCounter {
-  dateKey String @id  // format YYYYMMDD
+  dateKey String @id
   count   Int    @default(0)
 }
 
-// Caches the AI-generated daily briefing so it's only generated once per day
-// (regenerated on demand via the Refresh button), not on every dashboard load.
 model DailyBriefing {
-  date        String   @id // format YYYY-MM-DD
+  date        String   @id
   content     String
   generatedAt DateTime @default(now())
+}
+
+// Zero-cost, self-contained rate limiting (see src/lib/rateLimit.ts) - no
+// external service like Upstash/Redis needed. Rows are short-lived and
+// cleaned up automatically as buckets are checked.
+model RateLimitAttempt {
+  id        String   @id @default(cuid())
+  bucket    String
+  createdAt DateTime @default(now())
+
+  @@index([bucket, createdAt])
 }

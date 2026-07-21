@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import StatusBadge from "./StatusBadge";
-import { FileDown, RefreshCw, FileText, Paperclip, ChevronDown, AlertTriangle } from "lucide-react";
+import { FileDown, RefreshCw, FileText, Paperclip, ChevronDown, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
 
 const STATUS_OPTIONS = [
   "PENDING",
@@ -22,7 +22,7 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
   const [visitors, setVisitors] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ date: "", status: "", search: "", urgentOnly: false });
+  const [filters, setFilters] = useState({ date: "", status: "", search: "", urgentOnly: false, overdueOnly: false });
   const [openRow, setOpenRow] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -32,6 +32,7 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
     if (filters.status) params.set("status", filters.status);
     if (filters.search) params.set("search", filters.search);
     if (filters.urgentOnly) params.set("urgentOnly", "true");
+    if (filters.overdueOnly) params.set("overdueOnly", "true");
     const res = await fetch(`/api/visitors?${params.toString()}`);
     const data = await res.json();
     setVisitors(data.visitors || []);
@@ -62,9 +63,20 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
     load();
   }
 
-  async function generateLetter(id: string) {
+  async function generateLetter(id: string, visitorName: string) {
+    const confirmed = confirm(
+      `Generate a formal letter for "${visitorName}"'s case, to be issued under the Collector's signature?\n\n` +
+        `By confirming, you're affirming you've reviewed this case's details and department assignment.\n\n` +
+        `This action is logged with your name.`
+    );
+    if (!confirmed) return;
+
     try {
-      const res = await fetch(`/api/visitors/${id}/letter`, { method: "POST" });
+      const res = await fetch(`/api/visitors/${id}/letter`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmed: true }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Letter generation failed");
       await load();
@@ -72,6 +84,11 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
     } catch (err: any) {
       alert(`Letter generation failed: ${err.message}`);
     }
+  }
+
+  async function reviewUrgency(id: string) {
+    await fetch(`/api/visitors/${id}/urgency-review`, { method: "POST" });
+    load();
   }
 
   return (
@@ -93,17 +110,11 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
             <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
           ))}
         </select>
-        <input
-          placeholder="Search name / mobile / token"
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[180px]"
-          value={filters.search}
-          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-        />
         <button onClick={load} className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50" title="Refresh">
           <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
         </button>
         <button
-          onClick={() => setFilters((f) => ({ ...f, urgentOnly: !f.urgentOnly }))}
+          onClick={() => setFilters((f) => ({ ...f, urgentOnly: !f.urgentOnly, overdueOnly: false }))}
           className={`flex items-center gap-1 text-sm px-3 py-2 rounded-lg border transition ${
             filters.urgentOnly
               ? "bg-red-50 border-red-300 text-red-700 font-semibold"
@@ -112,9 +123,26 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
         >
           <AlertTriangle size={14} /> Urgent Only
         </button>
+        <button
+          onClick={() => setFilters((f) => ({ ...f, overdueOnly: !f.overdueOnly, urgentOnly: false }))}
+          className={`flex items-center gap-1 text-sm px-3 py-2 rounded-lg border transition ${
+            filters.overdueOnly
+              ? "bg-amber-50 border-amber-300 text-amber-700 font-semibold"
+              : "border-gray-300 text-gray-600 hover:bg-gray-50"
+          }`}
+        >
+          <Clock size={14} /> Overdue (7+ days)
+        </button>
+
+        <input
+          placeholder="Search name / mobile / token"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[180px]"
+          value={filters.search}
+          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+        />
 
         {canExport && (
-          <div className="flex gap-2 ml-auto">
+          <div className="flex gap-2">
             <a
               href={`/api/reports/daily?type=excel&date=${filters.date || format(new Date(), "yyyy-MM-dd")}`}
               className="flex items-center gap-1 text-sm px-3 py-2 rounded-lg bg-green text-white hover:opacity-90"
@@ -170,6 +198,19 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
                     </a>
                   )}
                   <div className="text-[11px] text-gray-400 font-normal">{format(new Date(v.createdAt), "dd MMM, hh:mm a")}</div>
+                  {v.aiUrgency === "URGENT" && !v.urgencyReviewed && (
+                    <button
+                      onClick={() => reviewUrgency(v.id)}
+                      className="mt-1 flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 border border-amber-300 rounded px-1.5 py-0.5 hover:bg-amber-100"
+                    >
+                      <CheckCircle2 size={10} /> Acknowledge urgent
+                    </button>
+                  )}
+                  {v.aiUrgency === "URGENT" && v.urgencyReviewed && (
+                    <div className="mt-1 flex items-center gap-1 text-[10px] text-green-700" title={v.urgencyReviewedBy?.name ? `Reviewed by ${v.urgencyReviewedBy.name}` : undefined}>
+                      <CheckCircle2 size={10} /> Reviewed
+                    </div>
+                  )}
                 </td>
                 <td className="py-3 pr-3">
                   <div className="font-medium">{v.name}</div>
@@ -240,7 +281,7 @@ export default function VisitorTable({ role }: { role: "PA" | "COLLECTOR" | "ADM
                     </div>
                     {canAssign && (
                       <button
-                        onClick={() => generateLetter(v.id)}
+                        onClick={() => generateLetter(v.id, v.name)}
                         className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-navy text-white hover:bg-navy-light transition"
                         title="Generate Marathi Forwarding Letter (Word)"
                       >

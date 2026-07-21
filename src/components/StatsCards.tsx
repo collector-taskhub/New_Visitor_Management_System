@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { Users, CalendarCheck, Building2, Clock } from "lucide-react";
+import { Users, CalendarCheck, Building2, Clock, AlertTriangle, AlertOctagon } from "lucide-react";
 import DailyBriefing from "./DailyBriefing";
 
 const COLORS = ["#14245c", "#f4941e", "#128a3e", "#d4af37", "#1e3a8a", "#e11d48", "#0891b2"];
@@ -24,6 +24,34 @@ export default function StatsCards({ role }: { role?: "PA" | "COLLECTOR" | "ADMI
   return (
     <div className="space-y-6">
       {showBriefing && <DailyBriefing />}
+
+      {(stats.overdueCount > 0 || stats.urgentOpenCount > 0) && (
+        <div className="grid sm:grid-cols-2 gap-4">
+          {stats.overdueCount > 0 && (
+            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0">
+                <Clock size={18} />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-amber-800">{stats.overdueCount} overdue</div>
+                <div className="text-xs text-amber-700">Open more than 7 days - worth a review</div>
+              </div>
+            </div>
+          )}
+          {stats.urgentOpenCount > 0 && (
+            <div className="bg-red-50 border border-red-300 rounded-2xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-red-600 text-white flex items-center justify-center shrink-0">
+                <AlertOctagon size={18} />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-red-800">{stats.urgentOpenCount} urgent &amp; still open</div>
+                <div className="text-xs text-red-700">AI-flagged cases awaiting resolution</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-4 gap-4">
         <Card icon={<Users size={20} />} label="Total Applications" value={stats.total} color="bg-navy" />
         <Card icon={<CalendarCheck size={20} />} label="Today" value={stats.todayCount} color="bg-saffron" />

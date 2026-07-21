@@ -10,7 +10,9 @@ export async function GET() {
   const deptFilter =
     user.role === "DEPARTMENT_OFFICER" && user.departmentId ? { assignedDepartmentId: user.departmentId } : {};
 
-  const [total, todayCount, statusGroups, deptGroups, last7Days] = await Promise.all([
+  const sevenDaysAgo = subDays(new Date(), 7);
+
+  const [total, todayCount, statusGroups, deptGroups, overdueCount, urgentOpenCount, last7Days] = await Promise.all([
     prisma.visitor.count({ where: deptFilter }),
     prisma.visitor.count({ where: { ...deptFilter, createdAt: { gte: startOfDay(new Date()) } } }),
     prisma.visitor.groupBy({ by: ["status"], where: deptFilter, _count: true }),
@@ -18,6 +20,20 @@ export async function GET() {
       by: ["assignedDepartmentId"],
       where: deptFilter,
       _count: true,
+    }),
+    prisma.visitor.count({
+      where: {
+        ...deptFilter,
+        status: { in: ["PENDING", "ASSIGNED", "IN_PROGRESS", "PARTIALLY_RESOLVED"] },
+        createdAt: { lt: sevenDaysAgo },
+      },
+    }),
+    prisma.visitor.count({
+      where: {
+        ...deptFilter,
+        aiUrgency: "URGENT",
+        status: { in: ["PENDING", "ASSIGNED", "IN_PROGRESS"] },
+      },
     }),
     Promise.all(
       Array.from({ length: 7 }).map(async (_, i) => {
@@ -38,6 +54,8 @@ export async function GET() {
   return NextResponse.json({
     total,
     todayCount,
+    overdueCount,
+    urgentOpenCount,
     statusGroups: statusGroups.map((s) => ({ status: s.status, count: s._count })),
     deptGroups: deptGroups.map((d) => ({
       department: d.assignedDepartmentId ? deptMap.get(d.assignedDepartmentId) || "Unassigned" : "Unassigned",
